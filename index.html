@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎤</text></svg>">
+<title>Grand Concert Song Tracker</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: #1a1a2e; color: #e0e0e0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 14px; padding: 0;
+    max-width: 480px; margin: 0 auto;
+    min-height: 100vh; overflow-x: hidden;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      zoom: 2;
+    }
+  }
+
+  header {
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    padding: 2px 6px;
+    gap: 6px;
+  }
+  .title-main {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .title-sub {
+    font-size: 9px;
+    color: #555;
+    margin-left: auto;
+  }
+
+  .header-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #16213e 0%, #1a2a4a 100%);
+    border: 1px solid #2a4a6b;
+    border-radius: 8px;
+    padding: 4px 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  .header-row-full {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(135deg, #16213e 0%, #1a2a4a 100%);
+    border: 1px solid #2a4a6b;
+    border-radius: 8px;
+    padding: 4px 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .counter {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 8px;
+    flex-shrink: 0;
+    transition: all .2s;
+  }
+  .counter.gray { background: rgba(136,136,136,0.1); border: 1px solid rgba(136,136,136,0.2); }
+  .counter.purple { background: rgba(179,136,255,0.15); border: 1px solid rgba(179,136,255,0.3); }
+  .counter.yellow { background: rgba(255,213,79,0.15); border: 1px solid rgba(255,213,79,0.3); }
+  .counter.green { background: rgba(105,240,174,0.15); border: 1px solid rgba(105,240,174,0.3); }
+  .counter-label { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: .5px; font-weight: 600; }
+  .counter-value { font-size: 18px; font-weight: 700; line-height: 1; }
+  .counter.gray .counter-value { color: #888; }
+  .counter.purple .counter-value { color: #b388ff; text-shadow: 0 0 8px rgba(179, 136, 255, 0.5); }
+  .counter.yellow .counter-value { color: #ffd54f; }
+  .counter.green .counter-value { color: #69f0ae; text-shadow: 0 0 8px rgba(105, 240, 174, 0.3); }
+  .counter-divider { color: #555; font-weight: 400; margin: 0 1px; }
+
+  .phase-selector {
+    display: flex; align-items: center; gap: 4px;
+    flex: 0 0 auto;
+  }
+  .phase-arrow {
+    background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border: none; flex-shrink: 0;
+    transition: all .15s;
+    padding: 2px 4px;
+    border-radius: 6px;
+  }
+  .phase-arrow.prev { border: 1px solid rgba(255,255,255,0.1); }
+  .phase-arrow.prev:active { background: rgba(255,255,255,0.1); }
+  .phase-arrow.next { background: linear-gradient(135deg, #1e5a8f 0%, #2a7abf 100%); border: 2px solid #3a8acf; box-shadow: 0 2px 8px rgba(42, 122, 207, 0.4); }
+  .phase-arrow.next:active { transform: scale(0.95); }
+  .phase-arrow:disabled { opacity: 0.15; cursor: default; box-shadow: none; }
+  .phase-arrow svg { width: 24px; height: 24px; }
+  .phase-arrow.prev svg { fill: #5a7a9a; }
+  .phase-arrow.next svg { fill: #fff; }
+  .phase-current {
+    font-size: 13px; font-weight: 700; color: #fff;
+    min-width: 60px; text-align: center;
+    background: rgba(255,255,255,0.05); padding: 0 6px; border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    white-space: nowrap;
+    height: 32px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .reset-btn {
+    padding: 6px 12px; border-radius: 4px;
+    background: #4a1a1a; color: #ff8080; border: 1px solid #6b2a2a;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    text-transform: uppercase; letter-spacing: .5px;
+    flex-shrink: 0;
+  }
+  .reset-btn:active { background: #6b1a1a; }
+
+  .songs-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .target-tokens { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: space-between; width: 100%; }
+  .target-token { display: flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 700; color: #fff; }
+  .target-token img { width: 15px; height: 15px; }
+  .target-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-right: 4px; font-weight: 700; }
+  .target-values { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+  .content { padding: 6px 8px; }
+
+  .song-list-container {
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .section { margin-bottom: 4px; border-radius: 4px; overflow: hidden; }
+  .section-title {
+    padding: 4px 8px; font-size: 9px; font-weight: 700;
+    letter-spacing: .5px; text-transform: uppercase;
+    background: #1a3a5f; color: #80bfff;
+  }
+
+  .song {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; background: #16213e;
+    border-bottom: 1px solid #1a1a2e;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .song:active { background: #1a2a4a; }
+  .song:last-child { border-bottom: none; }
+  .song.owned { opacity: 0.4; }
+  .song.owned .song-name::after { content: ' ✓'; color: #4caf50; }
+  .song.target {
+    border: 2px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+  }
+  .song.target::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(135deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
+    border-radius: 4px;
+    z-index: -1;
+  }
+  .song img.cover { width: 40px; height: 40px; border-radius: 4px; flex-shrink: 0; }
+  .song-info { flex: 1; min-width: 0; }
+  .song-name { font-size: 14px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .song-bonus { font-size: 11px; color: #aaa; display: flex; align-items: center; gap: 3px; flex-wrap: wrap; margin-top: 2px; }
+  .song-cost { font-size: 14px; color: #bbb; display: flex; gap: 6px; flex-shrink: 0; align-items: center; font-weight: 600; flex-wrap: wrap; justify-content: flex-end; }
+  .song-cost img { width: 16px; height: 16px; vertical-align: middle; }
+
+  .badge { font-size: 10px; padding: 2px 5px; border-radius: 3px; font-weight: 600; flex-shrink: 0; }
+  .badge-spec { background: #7b2d8e; color: #e0b0ff; }
+  .badge-fri { background: #1a6b5a; color: #7fffd4; }
+  .badge-chain { background: #4a4a6a; color: #b0b0d0; }
+  .badge-speed { background: #2a4a6b; color: #80ccff; }
+  .badge-stamina { background: #6b1a1a; color: #ff8080; }
+  .badge-power { background: #5a4a1a; color: #ffcc4d; }
+  .badge-guts { background: #4a1a4a; color: #cc80ff; }
+  .badge-wit { background: #1a4a2e; color: #80ff99; }
+  .badge-sp { background: #1a3a6b; color: #80bfff; }
+  .badge-auto { background: #3a3a3a; color: #aaa; }
+
+  .empty-msg { text-align: center; padding: 20px; color: #666; font-size: 11px; }
+
+  .info-btn {
+    background: linear-gradient(135deg, #4a9eff 0%, #2a7abf 100%);
+    border: 2px solid #fff;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(74, 158, 255, 0.5);
+    transition: all 0.2s;
+    line-height: 1;
+    padding: 0;
+  }
+  .info-btn:active { transform: scale(0.95); box-shadow: 0 1px 4px rgba(74, 158, 255, 0.4); }
+
+  .info-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #1a2a4a;
+    border: 2px solid #3a8acf;
+    border-radius: 12px;
+    padding: 20px;
+    width: 95%;
+    max-height: 80vh;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  }
+  .info-popup.active { display: block; }
+  .info-popup h3 {
+    color: #4a9eff;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .info-popup p {
+    color: #e0e0e0;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .info-popup ul {
+    color: #e0e0e0;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-left: 20px;
+    margin-bottom: 10px;
+  }
+  .info-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .info-close:active { color: #fff; }
+  .info-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+  }
+  .info-overlay.active { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <span class="title-main">Grand Concert Song Tracker</span>
+    <button class="info-btn" id="info-btn">?</button>
+    <span class="title-sub">v1.0 by Sukuna#701119311607</span>
+  </div>
+  <div class="header-row">
+    <div class="phase-selector">
+      <button class="phase-arrow prev" id="prev-phase">
+        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      </button>
+      <span class="phase-current" id="phase-label">Junior</span>
+      <button class="phase-arrow next" id="next-phase">
+        <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+      </button>
+    </div>
+    <button class="reset-btn" id="reset-btn">RESET</button>
+  </div>
+  <div class="header-row">
+    <div class="counter gray" id="total-counter"><span class="counter-label">Total</span><span class="counter-value">1<span class="counter-divider">/</span>18</span></div>
+    <span class="songs-label">SONGS</span>
+    <div class="counter yellow" id="phase-counter"><span class="counter-label">Phase</span><span class="counter-value">0<span class="counter-divider">/</span>3</span></div>
+  </div>
+  <div class="header-row-full">
+    <div class="target-tokens" id="target-tokens"></div>
+  </div>
+</header>
+
+<div class="info-overlay" id="info-overlay"></div>
+<div class="info-popup" id="info-popup">
+  <button class="info-close" id="info-close">×</button>
+  <h3>How to Use This Tracker</h3>
+  <p><strong>Buying Songs:</strong> Tap any song to mark it as bought. Tap again to unbuy.</p>
+  <p><strong>Recommended Songs:</strong> Songs are sorted by priority. The recommended songs to buy are highlighted with a rainbow border.</p>
+  <p><strong>Target Savings:</strong> Shows the total tokens needed for the highlighted songs. When there are no highlighted songs, it shows TARGET (NEXT PHASE) with savings for the next phase.</p>
+  <p><strong>Phase Navigation:</strong> Use arrows to move between phases. The main use case is moving forward as you progress. Moving backward won't undo your bought songs - it just lets you view previous phases.</p>
+  <p><strong>Reset Button:</strong> Clears all your progress and starts fresh.</p>
+  <p><strong>Auto Assignments:</strong> Make Debut! is auto-assigned at Junior phase. Girls' Legend U auto-assigns when you reach 18 total songs.</p>
+</div>
+
+<div class="content">
+  <div class="song-list-container" id="song-list"></div>
+</div>
+
+<script>
+const TOKEN_NAMES = { 0: 'Dance', 1: 'Passion', 2: 'Vocal', 3: 'Visual', 5: 'Composure' };
+const TOKEN_IMG = {
+  0: 'images/utx_ico_performance_s_00.png',
+  1: 'images/utx_ico_performance_s_01.png',
+  2: 'images/utx_ico_performance_s_02.png',
+  3: 'images/utx_ico_performance_s_03.png',
+  5: 'images/utx_ico_performance_s_05.png'
+};
+
+const PHASE_NAMES = ['Junior', 'Early Classic', 'Late Classic', 'Early Senior', 'Late Senior'];
+
+const SONGS = [
+  { id: 0, name: "Make Debut!", phase: 0, priority: "auto", auto: true,
+    cover: "images/gc_022_debut.webp",
+    cost: {},
+    bonuses: [{ text: "All Points +10", cls: "badge-auto" }, { text: "Speciality +5", cls: "badge-spec" }] },
+  { id: 1, name: "Believe in Miracles!", phase: 0, priority: "high",
+    cover: "images/gc_001_believe.webp",
+    cost: { 1: 21, 5: 21 },
+    bonuses: [{ text: "Wit Training +1", cls: "badge-wit" }, { text: "Speciality +5", cls: "badge-spec" }] },
+  { id: 2, name: "Run n' Run!", phase: 0, priority: "great",
+    cover: "images/gc_002_run.webp",
+    cost: { 0: 14, 3: 16, 5: 14 },
+    bonuses: [{ text: "SP +22", cls: "badge-sp" }, { text: "Friendship +5%", cls: "badge-fri" }] },
+  { id: 3, name: "Full Speed Ahead! Umadol Power ★", phase: 0, priority: "great",
+    cover: "images/gc_003_umadol.webp",
+    cost: { 0: 32, 3: 12 },
+    bonuses: [{ text: "Speed +22", cls: "badge-speed" }, { text: "Friendship +5%", cls: "badge-fri" }] },
+  { id: 4, name: "Here Comes Our Time", phase: 0, priority: "great",
+    cover: "images/gc_004_time.webp",
+    cost: { 2: 32, 5: 12 },
+    bonuses: [{ text: "Power +22", cls: "badge-power" }, { text: "Friendship +5%", cls: "badge-fri" }] },
+  { id: 5, name: "Zero is Where the Center Stands!", phase: 0, priority: "good",
+    cover: "images/gc_005_zero.webp",
+    cost: { 0: 21, 3: 21 },
+    bonuses: [{ text: "Speed Training +1", cls: "badge-speed" }, { text: "Chain +1", cls: "badge-chain" }] },
+  { id: 6, name: "Go This Way", phase: 0, priority: "good",
+    cover: "images/gc_006_way.webp",
+    cost: { 2: 21, 5: 21 },
+    bonuses: [{ text: "Power Training +1", cls: "badge-power" }, { text: "Chain +1", cls: "badge-chain" }] },
+  { id: 7, name: "Ring Ring Diary", phase: 0, priority: "low",
+    cover: "images/gc_007_ring.webp",
+    cost: { 1: 21, 3: 21 },
+    bonuses: [{ text: "Stamina Training +1", cls: "badge-stamina" }, { text: "Chain +1", cls: "badge-chain" }] },
+  { id: 8, name: "Getaway! Fallin' Love", phase: 0, priority: "low",
+    cover: "images/gc_008_fallin.webp",
+    cost: { 0: 21, 3: 21 },
+    bonuses: [{ text: "Guts Training +1", cls: "badge-guts" }, { text: "Chain +1", cls: "badge-chain" }] },
+
+  { id: 9, name: "Run for Our Dream!", phase: 1, priority: "high",
+    cover: "images/gc_009_dream.webp",
+    cost: { 1: 21, 3: 21 },
+    bonuses: [{ text: "SP +2", cls: "badge-sp" }, { text: "Speciality +5", cls: "badge-spec" }] },
+  { id: 10, name: "Our Blue Bird Days", phase: 1, priority: "high",
+    cover: "images/gc_010_bluebird.webp",
+    cost: { 0: 21, 3: 42 },
+    bonuses: [{ text: "Speed Training +2", cls: "badge-speed" }, { text: "Speciality +5", cls: "badge-spec" }] },
+  { id: 11, name: "Hey, Guess What!", phase: 1, priority: "low",
+    cover: "images/gc_011_anone.webp",
+    cost: { 0: 42, 3: 21 },
+    bonuses: [{ text: "Guts Training +2", cls: "badge-guts" }, { text: "Speciality +5", cls: "badge-spec" }] },
+
+  { id: 12, name: "Grow Up and Shine!", phase: 2, priority: "high",
+    cover: "images/gc_012_shine.webp",
+    cost: { 0: 21, 2: 21, 5: 21 },
+    bonuses: [{ text: "SP +3", cls: "badge-sp" }, { text: "Chain +1", cls: "badge-chain" }] },
+  { id: 13, name: "Seven Colors Scenery", phase: 2, priority: "great",
+    cover: "images/gc_013_seven.webp",
+    cost: { 2: 21, 5: 42 },
+    bonuses: [{ text: "Power Training +2", cls: "badge-power" }, { text: "Speciality +5", cls: "badge-spec" }] },
+  { id: 14, name: "Sunbeam Cheer", phase: 2, priority: "great",
+    cover: "images/gc_014_sunbeam.webp",
+    cost: { 1: 42, 5: 21 },
+    bonuses: [{ text: "Wit Training +2", cls: "badge-wit" }, { text: "Chain +1", cls: "badge-chain" }] },
+  { id: 15, name: "Hoppity Sunny Days♪", phase: 2, priority: "low",
+    cover: "images/gc_015_sunny.webp",
+    cost: { 1: 42, 2: 21 },
+    bonuses: [{ text: "Stamina Training +2", cls: "badge-stamina" }, { text: "Speciality +5", cls: "badge-spec" }] },
+
+  { id: 16, name: "Precious Treasure Box", phase: 3, priority: "high",
+    cover: "images/gc_016_treasure.webp",
+    cost: { 0: 42, 3: 26 },
+    bonuses: [{ text: "Speed +26", cls: "badge-speed" }, { text: "Friendship +10%", cls: "badge-fri" }] },
+  { id: 17, name: "Fanfare For The Future!", phase: 3, priority: "high",
+    cover: "images/gc_017_fanfare.webp",
+    cost: { 0: 26, 3: 42 },
+    bonuses: [{ text: "Guts +26", cls: "badge-guts" }, { text: "Friendship +10%", cls: "badge-fri" }] },
+  { id: 18, name: "Present March♪", phase: 3, priority: "great",
+    cover: "images/gc_018_present.webp",
+    cost: { 2: 22, 5: 22 },
+    bonuses: [{ text: "Power +22", cls: "badge-power" }, { text: "Friendship +5%", cls: "badge-fri" }] },
+  { id: 19, name: "Dream Sky", phase: 3, priority: "great",
+    cover: "images/gc_019_dreamsky.webp",
+    cost: { 1: 22, 5: 22 },
+    bonuses: [{ text: "Wit +22", cls: "badge-wit" }, { text: "Friendship +5%", cls: "badge-fri" }] },
+  { id: 20, name: "The World's at Our Whim", phase: 3, priority: "great",
+    cover: "images/gc_020_world.webp",
+    cost: { 1: 32, 2: 12 },
+    bonuses: [{ text: "Stamina +22", cls: "badge-stamina" }, { text: "Friendship +5%", cls: "badge-fri" }] },
+  { id: 21, name: "Sky-Blue Spring", phase: 3, priority: "great",
+    cover: "images/gc_021_spring.webp",
+    cost: { 0: 12, 3: 32 },
+    bonuses: [{ text: "Guts +22", cls: "badge-guts" }, { text: "Friendship +5%", cls: "badge-fri" }] },
+
+  { id: 22, name: "Girls' Legend U", phase: 4, priority: "auto", auto: true,
+    cover: "images/gc_023_girlslegend.webp",
+    cost: {},
+    bonuses: [{ text: "All Stats +10", cls: "badge-auto" }, { text: "Friendship +10%", cls: "badge-fri" }] },
+];
+
+const PRIORITY_ORDER = { high: 0, great: 1, good: 2, low: 3, auto: -1 };
+
+let state = {
+  phase: 0,
+  owned: {}
+};
+
+function loadState() {
+  try {
+    const saved = localStorage.getItem('gc-tracker-v10');
+    if (saved) state = JSON.parse(saved);
+  } catch(e) {}
+  autoOwnMakeDebut();
+  checkGirlsLegend();
+}
+
+function saveState() {
+  localStorage.setItem('gc-tracker-v10', JSON.stringify(state));
+}
+
+function autoOwnMakeDebut() {
+  if (state.owned[0] === undefined) {
+    state.owned[0] = 0;
+    saveState();
+  }
+}
+
+function checkGirlsLegend() {
+  const realCount = Object.keys(state.owned).filter(id => parseInt(id) !== 22).length;
+  if (realCount >= 18 && state.owned[22] === undefined) {
+    state.owned[22] = state.phase;
+    saveState();
+  } else if (realCount < 18 && state.owned[22] !== undefined) {
+    delete state.owned[22];
+    saveState();
+  }
+}
+
+function hasFriendshipBonus(song) {
+  return song.bonuses.some(b => b.cls === 'badge-fri');
+}
+
+function isOwned(songId) {
+  return state.owned[songId] !== undefined;
+}
+
+function getTotalCount() {
+  return Object.keys(state.owned).length;
+}
+
+function getCurrentPhaseCount() {
+  return Object.values(state.owned).filter(p => p === state.phase).length;
+}
+
+function getTargetSongs() {
+  const currentCount = getCurrentPhaseCount();
+  const slotsNeeded = Math.max(0, 3 - currentCount);
+  
+  const available = SONGS.filter(s => s.phase <= state.phase && !isOwned(s.id) && !s.auto);
+  
+  const friendshipSongs = available.filter(s => hasFriendshipBonus(s));
+  const nonFriendshipSongs = available.filter(s => !hasFriendshipBonus(s));
+  
+  friendshipSongs.sort((a, b) => {
+    const aBonus = a.bonuses.find(b => b.cls === 'badge-fri');
+    const bBonus = b.bonuses.find(b => b.cls === 'badge-fri');
+    const aPercent = parseInt(aBonus.text.match(/\d+/)[0]);
+    const bPercent = parseInt(bBonus.text.match(/\d+/)[0]);
+    if (aPercent !== bPercent) return bPercent - aPercent;
+    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+    if (po !== 0) return po;
+    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
+  });
+  
+  nonFriendshipSongs.sort((a, b) => {
+    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+    if (po !== 0) return po;
+    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
+  });
+  
+  const sorted = [...friendshipSongs, ...nonFriendshipSongs];
+  
+  const target = [];
+  const targetIds = new Set();
+  
+  for (let i = 0; i < slotsNeeded && i < sorted.length; i++) {
+    target.push(sorted[i]);
+    targetIds.add(sorted[i].id);
+  }
+  
+  friendshipSongs.forEach(s => {
+    if (!targetIds.has(s.id)) {
+      target.push(s);
+      targetIds.add(s.id);
+    }
+  });
+  
+  return target;
+}
+
+function renderCounters() {
+  const totalCount = getTotalCount();
+  const currentCount = getCurrentPhaseCount();
+  
+  const totalEl = document.getElementById('total-counter');
+  const totalClass = totalCount >= 18 ? 'purple' : 'gray';
+  totalEl.className = `counter ${totalClass}`;
+  totalEl.querySelector('.counter-value').innerHTML = `${totalCount}<span class="counter-divider">/</span>18`;
+
+  const phaseEl = document.getElementById('phase-counter');
+  const currentClass = currentCount >= 3 ? 'green' : 'yellow';
+  phaseEl.className = `counter ${currentClass}`;
+  phaseEl.querySelector('.counter-value').innerHTML = `${currentCount}<span class="counter-divider">/</span>3`;
+}
+
+function renderPhaseNav() {
+  document.getElementById('phase-label').textContent = PHASE_NAMES[state.phase];
+  document.getElementById('prev-phase').disabled = state.phase === 0;
+  document.getElementById('next-phase').disabled = state.phase === 4;
+}
+
+function renderTargetSavings(targetSongs) {
+  const container = document.getElementById('target-tokens');
+  const isNextPhase = targetSongs.length === 0 && state.phase < 4;
+  
+  let songsToShow = targetSongs;
+  let label = 'TARGET';
+  
+  if (isNextPhase) {
+    const nextPhase = state.phase + 1;
+    const available = SONGS.filter(s => s.phase <= nextPhase && !isOwned(s.id) && !s.auto);
+    
+    const friendshipSongs = available.filter(s => hasFriendshipBonus(s));
+    const nonFriendshipSongs = available.filter(s => !hasFriendshipBonus(s));
+    
+    friendshipSongs.sort((a, b) => {
+      const aBonus = a.bonuses.find(b => b.cls === 'badge-fri');
+      const bBonus = b.bonuses.find(b => b.cls === 'badge-fri');
+      const aPercent = parseInt(aBonus.text.match(/\d+/)[0]);
+      const bPercent = parseInt(bBonus.text.match(/\d+/)[0]);
+      if (aPercent !== bPercent) return bPercent - aPercent;
+      const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+      if (po !== 0) return po;
+      return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
+    });
+    
+    nonFriendshipSongs.sort((a, b) => {
+      const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+      if (po !== 0) return po;
+      return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
+    });
+    
+    const sorted = [...friendshipSongs, ...nonFriendshipSongs];
+    songsToShow = sorted.slice(0, 3);
+    label = 'TARGET (NEXT PHASE)';
+  }
+  
+  const totals = {};
+  [0, 1, 2, 3, 5].forEach(t => totals[t] = 0);
+
+  songsToShow.forEach(s => {
+    for (const [tok, amt] of Object.entries(s.cost)) {
+      totals[tok] = (totals[tok] || 0) + amt;
+    }
+  });
+
+  let html = `<span class="target-label">${label}</span><div class="target-values">`;
+  for (const tok of [0, 1, 2, 3, 5]) {
+    if (totals[tok] > 0) {
+      html += `<div class="target-token"><img src="${TOKEN_IMG[tok]}">${totals[tok]}</div>`;
+    }
+  }
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+function renderSong(song, isTarget) {
+  const owned = isOwned(song.id);
+  let html = `<div class="song ${owned ? 'owned' : ''} ${isTarget ? 'target' : ''}" data-id="${song.id}">`;
+  html += `<img class="cover" src="${song.cover}">`;
+  html += `<div class="song-info"><div class="song-name">${song.name}</div>`;
+  html += `<div class="song-bonus">${song.bonuses.map(b => `<span class="badge ${b.cls}">${b.text}</span>`).join('')}</div>`;
+  html += `</div>`;
+  html += `<div class="song-cost">`;
+  for (const tok of [0, 1, 2, 3, 5]) {
+    if (song.cost[tok]) {
+      html += `<img src="${TOKEN_IMG[tok]}">${song.cost[tok]} `;
+    }
+  }
+  html += `</div></div>`;
+  return html;
+}
+
+function renderSongList() {
+  const container = document.getElementById('song-list');
+  const targetSongs = getTargetSongs();
+  const targetIds = new Set(targetSongs.map(s => s.id));
+  
+  const available = SONGS.filter(s => s.phase <= state.phase);
+  
+  const boughtInPast = available.filter(s => isOwned(s.id) && state.owned[s.id] < state.phase);
+  const ownedCurrent = available.filter(s => isOwned(s.id) && state.owned[s.id] === state.phase);
+  const unowned = available.filter(s => !isOwned(s.id) && s.id !== 22);
+
+  const friendshipSongs = unowned.filter(s => hasFriendshipBonus(s));
+  const nonFriendshipSongs = unowned.filter(s => !hasFriendshipBonus(s));
+  
+  friendshipSongs.sort((a, b) => {
+    const aBonus = a.bonuses.find(b => b.cls === 'badge-fri');
+    const bBonus = b.bonuses.find(b => b.cls === 'badge-fri');
+    const aPercent = parseInt(aBonus.text.match(/\d+/)[0]);
+    const bPercent = parseInt(bBonus.text.match(/\d+/)[0]);
+    if (aPercent !== bPercent) return bPercent - aPercent;
+    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+    if (po !== 0) return po;
+    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
+  });
+  
+  nonFriendshipSongs.sort((a, b) => {
+    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
+    if (po !== 0) return po;
+    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
+  });
+  
+  const sortedUnowned = [...friendshipSongs, ...nonFriendshipSongs];
+
+  if (!sortedUnowned.length && !ownedCurrent.length && !boughtInPast.length) {
+    container.innerHTML = '<div class="empty-msg">No songs available for this phase.</div>';
+    return;
+  }
+
+  let html = '';
+
+  if (ownedCurrent.length) {
+    html += `<div class="section"><div class="section-title">BOUGHT THIS PHASE (${ownedCurrent.length})</div>`;
+    ownedCurrent.forEach(s => { html += renderSong(s, false); });
+    html += `</div>`;
+  }
+
+  sortedUnowned.forEach(s => { html += renderSong(s, targetIds.has(s.id)); });
+
+  if (boughtInPast.length) {
+    html += `<div class="section"><div class="section-title">BOUGHT (${boughtInPast.length})</div>`;
+    boughtInPast.forEach(s => { html += renderSong(s, false); });
+    html += `</div>`;
+  }
+
+  container.innerHTML = html;
+
+  container.querySelectorAll('.song').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const id = parseInt(el.dataset.id);
+      const song = SONGS.find(s => s.id === id);
+      if (song && song.auto) return;
+      if (isOwned(id)) {
+        delete state.owned[id];
+      } else {
+        state.owned[id] = state.phase;
+      }
+      saveState();
+      checkGirlsLegend();
+      renderAll();
+    });
+  });
+}
+
+function renderAll() {
+  const targetSongs = getTargetSongs();
+  renderCounters();
+  renderPhaseNav();
+  renderTargetSavings(targetSongs);
+  renderSongList();
+}
+
+document.getElementById('prev-phase').addEventListener('click', () => {
+  if (state.phase > 0) {
+    state.phase--;
+    saveState();
+    renderAll();
+  }
+});
+
+document.getElementById('next-phase').addEventListener('click', () => {
+  if (state.phase < 4) {
+    state.phase++;
+    saveState();
+    renderAll();
+  }
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Reset all data?')) {
+    state = { phase: 0, owned: {} };
+    autoOwnMakeDebut();
+    renderAll();
+  }
+});
+
+document.getElementById('info-btn').addEventListener('click', () => {
+  document.getElementById('info-popup').classList.add('active');
+  document.getElementById('info-overlay').classList.add('active');
+});
+
+document.getElementById('info-close').addEventListener('click', () => {
+  document.getElementById('info-popup').classList.remove('active');
+  document.getElementById('info-overlay').classList.remove('active');
+});
+
+document.getElementById('info-overlay').addEventListener('click', () => {
+  document.getElementById('info-popup').classList.remove('active');
+  document.getElementById('info-overlay').classList.remove('active');
+});
+
+loadState();
+renderAll();
+</script>
+</body>
+</html>
