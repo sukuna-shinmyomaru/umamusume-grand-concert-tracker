@@ -116,6 +116,76 @@
     display: flex; align-items: center; justify-content: center;
   }
 
+  .technique-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .technique-plus {
+    background: linear-gradient(135deg, #0097a7 0%, #00bcd4 100%);
+    border: 2px solid #00e5ff;
+    box-shadow: 0 2px 8px rgba(0, 229, 255, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all .15s;
+    padding: 2px 8px;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 700;
+    height: 32px;
+  }
+  .technique-plus:active { transform: scale(0.95); }
+  .technique-plus:disabled {
+    background: #3a3a3a;
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: none;
+    color: #666;
+    cursor: default;
+  }
+
+  .technique-carryover {
+    display: none;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    border: 2px solid #fff;
+    border-radius: 6px;
+    padding: 4px 8px;
+    letter-spacing: .5px;
+  }
+  .technique-carryover.active {
+    display: block;
+  }
+  .technique-carryover.cyan {
+    background: rgba(0, 229, 255, 0.1);
+    border-color: #00e5ff;
+    color: #00e5ff;
+    text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+  }
+
+  .technique-next {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border: 1px solid;
+  }
+  .technique-next-1 { background: rgba(0, 229, 255, 0.15); border-color: #00e5ff; color: #00e5ff; }
+  .technique-next-2 { background: rgba(0, 200, 200, 0.15); border-color: #00c8c8; color: #00c8c8; }
+  .technique-next-3 { background: rgba(105, 240, 174, 0.15); border-color: #69f0ae; color: #69f0ae; }
+  .technique-next-4 { background: rgba(255, 213, 79, 0.15); border-color: #ffd54f; color: #ffd54f; }
+  .technique-next-5 { background: rgba(255, 82, 82, 0.15); border-color: #ff5252; color: #ff5252; }
+
   .reset-btn {
     padding: 6px 12px; border-radius: 4px;
     background: #4a1a1a; color: #ff8080; border: 1px solid #6b2a2a;
@@ -449,7 +519,7 @@
         <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
       </svg>
     </button>
-    <span class="title-sub">v1.3 by Sukuna#701119311607</span>
+    <span class="title-sub">v1.5 by Sukuna#701119311607</span>
   </div>
   <div class="header-row">
     <div class="phase-selector">
@@ -461,6 +531,7 @@
         <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
       </button>
     </div>
+    <span class="songs-label">CAREER</span>
     <button class="reset-btn" id="reset-btn">RESET</button>
   </div>
   <div class="header-row">
@@ -468,8 +539,22 @@
     <span class="songs-label">SONGS</span>
     <div class="counter yellow" id="phase-counter"><span class="counter-label">Phase</span><span class="counter-value">0<span class="counter-divider">/</span>3</span></div>
   </div>
-  <div class="header-row-full">
+  <div class="header-row" id="technique-row">
+    <div class="technique-group">
+      <div class="counter gray" id="technique-counter"><span class="counter-label">Techs</span><span class="counter-value">0<span class="counter-divider">/</span>1</span></div>
+      <button class="technique-plus" id="technique-plus-btn">+</button>
+    </div>
+    <div class="technique-carryover" id="technique-carryover">CARRYOVER</div>
+    <div class="technique-next" id="technique-next">NEXT <span id="technique-next-value">1</span></div>
+  </div>
+  <div class="header-row-full" id="previous-phase-row" style="display: none;">
+    <div style="text-align: center; width: 100%; font-size: 12px; font-weight: 700; color: #888; letter-spacing: .5px;">CHECKING A PREVIOUS PHASE</div>
+  </div>
+  <div class="header-row-full" id="target-row">
     <div class="target-tokens" id="target-tokens"></div>
+  </div>
+  <div class="header-row-full" id="target-next-phase-row">
+    <div class="target-tokens" id="target-next-phase-tokens"></div>
   </div>
 </header>
 
@@ -479,11 +564,12 @@
   <h3>How to Use This Tracker</h3>
   <p><strong>Buying Songs:</strong> Tap any song to mark it as bought. Tap again to unbuy.</p>
   <p><strong>Recommended Songs:</strong> Songs are sorted by priority. The recommended songs to buy are highlighted with a rainbow border.</p>
-  <p><strong>Target Savings:</strong> Shows the total tokens needed for the highlighted songs. When there are no highlighted songs, it shows TARGET (NEXT PHASE) with savings for the next phase.</p>
+  <p><strong>Target Savings:</strong> TARGET shows the total tokens needed for the highlighted songs. TARGET (NEXT PHASE) always shows savings for the next phase's top songs.</p>
   <p><strong>Phase Navigation:</strong> Use arrows to move between phases. The main use case is moving forward as you progress. Moving backward won't undo your bought songs - it just lets you view previous phases.</p>
   <p><strong>Reset Button:</strong> Clears all your progress and starts fresh.</p>
   <p><strong>Auto Assignments:</strong> Make Debut! is auto-assigned at Junior phase. Girls' Legend U auto-assigns when you reach 18 total songs.</p>
   <p><strong>Priority Settings:</strong> Tap the gear icon to customize song priority by dragging songs up or down. Your custom order is saved automatically.</p>
+  <p><strong>Technique Tracking:</strong> The Techniques counter shows your accumulated techniques toward the next song purchase. Tap + to increment. It resets to 0 when you buy a song or move to the next phase. The NEXT indicator shows the requirement for the next song. The required amount changes with each song bought in the phase. If you have enough techniques when moving forward, you'll carry over and get a free song purchase in the new phase. When viewing a previous phase, the technique row is hidden to avoid confusion.</p>
 </div>
 
 <div class="settings-overlay" id="settings-overlay"></div>
@@ -512,6 +598,14 @@ const TOKEN_IMG = {
 };
 
 const PHASE_NAMES = ['Junior', 'Early Classic', 'Late Classic', 'Early Senior', 'Late Senior'];
+
+const TECHNIQUE_REQUIREMENTS = {
+  0: [1, 2, 3, 4, 4, 2, 3],
+  1: [2, 2, 2, 4, 5, 2, 2],
+  2: [2, 2, 2, 4, 5, 2, 2],
+  3: [2, 2, 2, 4, 5, 2, 2],
+  4: [2, 2, 2, 4, 3, 2, 2]
+};
 
 const SONGS = [
   { id: 0, name: "Make Debut!", phase: 0, auto: true,
@@ -648,13 +742,33 @@ function sortSongs(songs) {
 
 let state = {
   phase: 0,
-  owned: {}
+  owned: {},
+  techniquesByPhase: {},
+  carryoverByPhase: {},
+  carryoverUsed: {}
 };
 
 function loadState() {
   try {
     const saved = localStorage.getItem('gc-tracker-v10');
-    if (saved) state = JSON.parse(saved);
+    if (saved) {
+      state = JSON.parse(saved);
+      if (state.techniques !== undefined && state.techniquesByPhase === undefined) {
+        state.techniquesByPhase = { [state.phase]: state.techniques };
+        delete state.techniques;
+      }
+      if (state.carryoverUsed === undefined) {
+        state.carryoverUsed = {};
+      }
+      if (state.carryoverByPhase === undefined) {
+        state.carryoverByPhase = {};
+        if (state.carryover !== undefined) {
+          state.carryoverByPhase[state.phase] = state.carryover;
+          delete state.carryover;
+        }
+      }
+      saveState();
+    }
   } catch(e) {}
   autoOwnMakeDebut();
   checkGirlsLegend();
@@ -696,6 +810,93 @@ function getTotalCount() {
 
 function getCurrentPhaseCount() {
   return Object.values(state.owned).filter(p => p === state.phase).length;
+}
+
+function getNonAutoBoughtInPhase() {
+  return Object.entries(state.owned).filter(([id, phase]) => {
+    const song = SONGS.find(s => s.id === parseInt(id));
+    return phase === state.phase && song && !song.auto;
+  }).length;
+}
+
+function getCurrentPhase() {
+  const boughtPhases = Object.values(state.owned).filter(phase => phase !== undefined);
+  if (boughtPhases.length === 0) return state.phase;
+  return Math.max(...boughtPhases);
+}
+
+function getCurrentTechniqueRequirement() {
+  const bought = getNonAutoBoughtInPhase();
+  const reqs = TECHNIQUE_REQUIREMENTS[state.phase];
+  
+  let index;
+  if (state.carryoverByPhase[state.phase] && bought === 0) {
+    return 0;
+  } else if (state.carryoverUsed[state.phase]) {
+    index = bought - 1;
+  } else {
+    index = bought;
+  }
+  
+  if (index >= reqs.length) return reqs[reqs.length - 1];
+  return reqs[index];
+}
+
+function renderTechniqueCounter() {
+  const techniqueRow = document.getElementById('technique-row');
+  const previousPhaseRow = document.getElementById('previous-phase-row');
+  const currentPhase = getCurrentPhase();
+  
+  if (state.phase < currentPhase) {
+    techniqueRow.style.display = 'none';
+    previousPhaseRow.style.display = 'flex';
+    return;
+  }
+  
+  techniqueRow.style.display = 'flex';
+  previousPhaseRow.style.display = 'none';
+  
+  const req = getCurrentTechniqueRequirement();
+  const el = document.getElementById('technique-counter');
+  const current = state.techniquesByPhase[state.phase] || 0;
+  const cls = current >= req ? 'green' : 'gray';
+  el.className = `counter ${cls}`;
+  el.querySelector('.counter-value').innerHTML = `${current}<span class="counter-divider">/</span>${req}`;
+  const plusBtn = document.getElementById('technique-plus-btn');
+  
+  const bought = getNonAutoBoughtInPhase();
+  const isCarryingOver = state.carryoverByPhase[state.phase] && bought === 0;
+  
+  plusBtn.disabled = current >= req || isCarryingOver;
+  const carryover = document.getElementById('technique-carryover');
+  if (isCarryingOver) {
+    carryover.textContent = 'CARRYING OVER';
+    carryover.classList.add('active', 'cyan');
+    carryover.classList.remove('ready');
+  } else if (current >= req) {
+    carryover.textContent = 'CARRYOVER READY';
+    carryover.classList.add('active', 'ready');
+    carryover.classList.remove('cyan');
+  } else {
+    carryover.classList.remove('active', 'cyan', 'ready');
+  }
+  
+  // Update NEXT N element
+  const nextEl = document.getElementById('technique-next');
+  const nextValueEl = document.getElementById('technique-next-value');
+  const reqs = TECHNIQUE_REQUIREMENTS[state.phase];
+  let nextIndex;
+  if (state.carryoverByPhase[state.phase] && bought === 0) {
+    nextIndex = 0;
+  } else if (state.carryoverUsed[state.phase]) {
+    nextIndex = bought;
+  } else {
+    nextIndex = bought + 1;
+  }
+  if (nextIndex >= reqs.length) nextIndex = reqs.length - 1;
+  const nextReq = reqs[nextIndex] || reqs[reqs.length - 1];
+  nextValueEl.textContent = nextReq;
+  nextEl.className = `technique-next technique-next-${Math.min(5, Math.max(1, nextReq))}`;
 }
 
 function getTargetSongs() {
@@ -746,38 +947,61 @@ function renderPhaseNav() {
 }
 
 function renderTargetSavings(targetSongs) {
-  const container = document.getElementById('target-tokens');
-  const isNextPhase = targetSongs.length === 0 && state.phase < 4;
+  const targetRow = document.getElementById('target-row');
+  const targetContainer = document.getElementById('target-tokens');
+  const targetNextRow = document.getElementById('target-next-phase-row');
+  const targetNextContainer = document.getElementById('target-next-phase-tokens');
   
-  let songsToShow = targetSongs;
-  let label = 'TARGET';
+  // Render TARGET row
+  if (targetSongs.length === 0) {
+    targetRow.style.display = 'none';
+  } else {
+    targetRow.style.display = 'flex';
+    const totals = {};
+    [0, 1, 2, 3, 5].forEach(t => totals[t] = 0);
+    targetSongs.forEach(s => {
+      for (const [tok, amt] of Object.entries(s.cost)) {
+        totals[tok] = (totals[tok] || 0) + amt;
+      }
+    });
+    let html = `<span class="target-label">TARGET</span><div class="target-values">`;
+    for (const tok of [0, 1, 2, 3, 5]) {
+      if (totals[tok] > 0) {
+        html += `<div class="target-token"><img src="${TOKEN_IMG[tok]}">${totals[tok]}</div>`;
+      }
+    }
+    html += `</div>`;
+    targetContainer.innerHTML = html;
+  }
   
-  if (isNextPhase) {
+  // Render TARGET (NEXT PHASE) row - always shown
+  if (state.phase < 4) {
+    targetNextRow.style.display = 'flex';
     const nextPhase = state.phase + 1;
-    const available = SONGS.filter(s => s.phase <= nextPhase && !isOwned(s.id) && !s.auto);
-    
+    const targetIds = new Set(targetSongs.map(s => s.id));
+    const available = SONGS.filter(s => s.phase <= nextPhase && !isOwned(s.id) && !s.auto && !targetIds.has(s.id));
     const sorted = sortSongs([...available]);
-    songsToShow = sorted.slice(0, 3);
-    label = 'TARGET (NEXT PHASE)';
-  }
-  
-  const totals = {};
-  [0, 1, 2, 3, 5].forEach(t => totals[t] = 0);
-
-  songsToShow.forEach(s => {
-    for (const [tok, amt] of Object.entries(s.cost)) {
-      totals[tok] = (totals[tok] || 0) + amt;
+    const songsToShow = sorted.slice(0, 3);
+    
+    const totals = {};
+    [0, 1, 2, 3, 5].forEach(t => totals[t] = 0);
+    songsToShow.forEach(s => {
+      for (const [tok, amt] of Object.entries(s.cost)) {
+        totals[tok] = (totals[tok] || 0) + amt;
+      }
+    });
+    
+    let html = `<span class="target-label">TARGET (NEXT PHASE)</span><div class="target-values">`;
+    for (const tok of [0, 1, 2, 3, 5]) {
+      if (totals[tok] > 0) {
+        html += `<div class="target-token"><img src="${TOKEN_IMG[tok]}">${totals[tok]}</div>`;
+      }
     }
-  });
-
-  let html = `<span class="target-label">${label}</span><div class="target-values">`;
-  for (const tok of [0, 1, 2, 3, 5]) {
-    if (totals[tok] > 0) {
-      html += `<div class="target-token"><img src="${TOKEN_IMG[tok]}">${totals[tok]}</div>`;
-    }
+    html += `</div>`;
+    targetNextContainer.innerHTML = html;
+  } else {
+    targetNextRow.style.display = 'none';
   }
-  html += `</div>`;
-  container.innerHTML = html;
 }
 
 function renderSong(song, isTarget) {
@@ -840,8 +1064,19 @@ function renderSongList() {
       if (song && song.auto) return;
       if (isOwned(id)) {
         delete state.owned[id];
+        const nonAutoLeft = Object.entries(state.owned).filter(([sid, phase]) => {
+          const s = SONGS.find(x => x.id === parseInt(sid));
+          return phase === state.phase && s && !s.auto;
+        }).length;
+        if (nonAutoLeft === 0) {
+          delete state.carryoverUsed[state.phase];
+        }
       } else {
         state.owned[id] = state.phase;
+        state.techniquesByPhase[state.phase] = 0;
+        if (state.carryoverByPhase[state.phase]) {
+          state.carryoverUsed[state.phase] = true;
+        }
       }
       saveState();
       checkGirlsLegend();
@@ -856,7 +1091,23 @@ function renderAll() {
   renderPhaseNav();
   renderTargetSavings(targetSongs);
   renderSongList();
+  renderTechniqueCounter();
 }
+
+document.getElementById('next-phase').addEventListener('click', () => {
+  if (state.phase < 4) {
+    const req = getCurrentTechniqueRequirement();
+    const current = state.techniquesByPhase[state.phase] || 0;
+    const nextPhase = state.phase + 1;
+    if (current >= req && !state.carryoverUsed[nextPhase] && !state.carryoverByPhase[nextPhase]) {
+      state.carryoverByPhase[nextPhase] = true;
+    }
+    state.techniquesByPhase[nextPhase] = 0;
+    state.phase++;
+    saveState();
+    renderAll();
+  }
+});
 
 document.getElementById('prev-phase').addEventListener('click', () => {
   if (state.phase > 0) {
@@ -866,19 +1117,21 @@ document.getElementById('prev-phase').addEventListener('click', () => {
   }
 });
 
-document.getElementById('next-phase').addEventListener('click', () => {
-  if (state.phase < 4) {
-    state.phase++;
-    saveState();
+document.getElementById('reset-btn').addEventListener('click', () => {
+  if (confirm('Reset all data?')) {
+    state = { phase: 0, owned: {}, techniquesByPhase: {}, carryoverByPhase: {}, carryoverUsed: {} };
+    autoOwnMakeDebut();
     renderAll();
   }
 });
 
-document.getElementById('reset-btn').addEventListener('click', () => {
-  if (confirm('Reset all data?')) {
-    state = { phase: 0, owned: {} };
-    autoOwnMakeDebut();
-    renderAll();
+document.getElementById('technique-plus-btn').addEventListener('click', () => {
+  const req = getCurrentTechniqueRequirement();
+  const current = state.techniquesByPhase[state.phase] || 0;
+  if (current < req) {
+    state.techniquesByPhase[state.phase] = current + 1;
+    saveState();
+    renderTechniqueCounter();
   }
 });
 
