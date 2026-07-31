@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎤</text></svg>">
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <title>Grand Concert Song Tracker</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -196,6 +197,7 @@
   .badge-wit { background: #1a4a2e; color: #80ff99; }
   .badge-sp { background: #1a3a6b; color: #80bfff; }
   .badge-auto { background: #3a3a3a; color: #aaa; }
+  .badge-phase { background: #3a3a5a; color: #b0b0d0; }
 
   .empty-msg { text-align: center; padding: 20px; color: #666; font-size: 11px; }
 
@@ -277,6 +279,163 @@
     z-index: 999;
   }
   .info-overlay.active { display: block; }
+
+  .settings-btn {
+    background: linear-gradient(135deg, #6a6a8a 0%, #4a4a6a 100%);
+    border: 2px solid #fff;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(106, 106, 138, 0.5);
+    transition: all 0.2s;
+    line-height: 1;
+    padding: 0;
+  }
+  .settings-btn:active { transform: scale(0.95); box-shadow: 0 1px 4px rgba(106, 106, 138, 0.4); }
+
+  .settings-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 999;
+  }
+  .settings-overlay.active { display: block; }
+
+  .settings-popup {
+    display: none;
+    position: fixed;
+    top: 2vh;
+    bottom: 2vh;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a2a4a;
+    border: 2px solid #3a8acf;
+    border-radius: 12px;
+    padding: 20px;
+    width: calc(100% - 16px);
+    max-width: 464px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    -webkit-overflow-scrolling: touch;
+  }
+  .settings-popup.active { display: block; }
+  .settings-popup h3 {
+    color: #4a9eff;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  .settings-close {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .settings-close:active { color: #fff; }
+
+  .settings-header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .settings-description {
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+  .revert-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    background: #4a1a1a;
+    color: #ff8080;
+    border: 1px solid #6b2a2a;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .revert-btn:active { background: #6b1a1a; }
+
+  .priority-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: #16213e;
+    border-bottom: 1px solid #1a1a2e;
+    border-radius: 0;
+  }
+  .priority-item:first-child {
+    border-radius: 6px 6px 0 0;
+  }
+  .priority-item:last-child {
+    border-radius: 0 0 6px 6px;
+    border-bottom: none;
+  }
+  .priority-item:only-child {
+    border-radius: 6px;
+  }
+  .priority-item img.cover {
+    width: 40px;
+    height: 40px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .priority-song-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .priority-song-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .priority-song-bonus {
+    font-size: 11px;
+    color: #aaa;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .priority-song-cost {
+    font-size: 14px;
+    color: #bbb;
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+    align-items: center;
+    font-weight: 600;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .priority-song-cost img {
+    width: 16px;
+    height: 16px;
+    vertical-align: middle;
+  }
 </style>
 </head>
 <body>
@@ -285,7 +444,12 @@
   <div class="title-row">
     <span class="title-main">GC Song Tracker</span>
     <button class="info-btn" id="info-btn">?</button>
-    <span class="title-sub">v1.2 by Sukuna#701119311607</span>
+    <button class="settings-btn" id="settings-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+      </svg>
+    </button>
+    <span class="title-sub">v1.3 by Sukuna#701119311607</span>
   </div>
   <div class="header-row">
     <div class="phase-selector">
@@ -319,6 +483,18 @@
   <p><strong>Phase Navigation:</strong> Use arrows to move between phases. The main use case is moving forward as you progress. Moving backward won't undo your bought songs - it just lets you view previous phases.</p>
   <p><strong>Reset Button:</strong> Clears all your progress and starts fresh.</p>
   <p><strong>Auto Assignments:</strong> Make Debut! is auto-assigned at Junior phase. Girls' Legend U auto-assigns when you reach 18 total songs.</p>
+  <p><strong>Priority Settings:</strong> Tap the gear icon to customize song priority by dragging songs up or down. Your custom order is saved automatically.</p>
+</div>
+
+<div class="settings-overlay" id="settings-overlay"></div>
+<div class="settings-popup" id="settings-popup">
+  <button class="settings-close" id="settings-close">×</button>
+  <h3>Priority Settings</h3>
+  <div class="settings-header">
+    <p class="settings-description">Customize song priority by dragging. Higher songs are recommended first.</p>
+    <button class="revert-btn" id="revert-btn">Revert to Default</button>
+  </div>
+  <div id="priority-list"></div>
 </div>
 
 <div class="content">
@@ -338,105 +514,137 @@ const TOKEN_IMG = {
 const PHASE_NAMES = ['Junior', 'Early Classic', 'Late Classic', 'Early Senior', 'Late Senior'];
 
 const SONGS = [
-  { id: 0, name: "Make Debut!", phase: 0, priority: "auto", auto: true,
+  { id: 0, name: "Make Debut!", phase: 0, auto: true,
     cover: "images/gc_022_debut.webp",
     cost: {},
     bonuses: [{ text: "All Points +10", cls: "badge-auto" }, { text: "Speciality +5", cls: "badge-spec" }] },
-  { id: 1, name: "Believe in Miracles!", phase: 0, priority: "high",
+  { id: 1, name: "Believe in Miracles!", phase: 0,
     cover: "images/gc_001_believe.webp",
     cost: { 1: 21, 5: 21 },
     bonuses: [{ text: "Wit Training +1", cls: "badge-wit" }, { text: "Speciality +5", cls: "badge-spec" }] },
-  { id: 2, name: "Run n' Run!", phase: 0, priority: "great",
+  { id: 2, name: "Run n' Run!", phase: 0,
     cover: "images/gc_002_run.webp",
     cost: { 0: 14, 3: 16, 5: 14 },
     bonuses: [{ text: "SP +22", cls: "badge-sp" }, { text: "Friendship +5%", cls: "badge-fri" }] },
-  { id: 3, name: "Full Speed Ahead! Umadol Power ★", phase: 0, priority: "great",
+  { id: 3, name: "Full Speed Ahead! Umadol Power ★", phase: 0,
     cover: "images/gc_003_umadol.webp",
     cost: { 0: 32, 3: 12 },
     bonuses: [{ text: "Speed +22", cls: "badge-speed" }, { text: "Friendship +5%", cls: "badge-fri" }] },
-  { id: 4, name: "Here Comes Our Time", phase: 0, priority: "great",
+  { id: 4, name: "Here Comes Our Time", phase: 0,
     cover: "images/gc_004_time.webp",
     cost: { 2: 32, 5: 12 },
     bonuses: [{ text: "Power +22", cls: "badge-power" }, { text: "Friendship +5%", cls: "badge-fri" }] },
-  { id: 5, name: "Zero is Where the Center Stands!", phase: 0, priority: "good",
+  { id: 5, name: "Zero is Where the Center Stands!", phase: 0,
     cover: "images/gc_005_zero.webp",
     cost: { 0: 21, 3: 21 },
     bonuses: [{ text: "Speed Training +1", cls: "badge-speed" }, { text: "Chain +1", cls: "badge-chain" }] },
-  { id: 6, name: "Go This Way", phase: 0, priority: "good",
+  { id: 6, name: "Go This Way", phase: 0,
     cover: "images/gc_006_way.webp",
     cost: { 2: 21, 5: 21 },
     bonuses: [{ text: "Power Training +1", cls: "badge-power" }, { text: "Chain +1", cls: "badge-chain" }] },
-  { id: 7, name: "Ring Ring Diary", phase: 0, priority: "low",
+  { id: 7, name: "Ring Ring Diary", phase: 0,
     cover: "images/gc_007_ring.webp",
     cost: { 1: 21, 3: 21 },
     bonuses: [{ text: "Stamina Training +1", cls: "badge-stamina" }, { text: "Chain +1", cls: "badge-chain" }] },
-  { id: 8, name: "Getaway! Fallin' Love", phase: 0, priority: "low",
+  { id: 8, name: "Getaway! Fallin' Love", phase: 0,
     cover: "images/gc_008_fallin.webp",
     cost: { 0: 21, 3: 21 },
     bonuses: [{ text: "Guts Training +1", cls: "badge-guts" }, { text: "Chain +1", cls: "badge-chain" }] },
 
-  { id: 9, name: "Run for Our Dream!", phase: 1, priority: "high",
+  { id: 9, name: "Run for Our Dream!", phase: 1,
     cover: "images/gc_009_dream.webp",
     cost: { 1: 21, 3: 21 },
     bonuses: [{ text: "SP +2", cls: "badge-sp" }, { text: "Speciality +5", cls: "badge-spec" }] },
-  { id: 10, name: "Our Blue Bird Days", phase: 1, priority: "high",
+  { id: 10, name: "Our Blue Bird Days", phase: 1,
     cover: "images/gc_010_bluebird.webp",
     cost: { 0: 21, 3: 42 },
     bonuses: [{ text: "Speed Training +2", cls: "badge-speed" }, { text: "Speciality +5", cls: "badge-spec" }] },
-  { id: 11, name: "Hey, Guess What!", phase: 1, priority: "low",
+  { id: 11, name: "Hey, Guess What!", phase: 1,
     cover: "images/gc_011_anone.webp",
     cost: { 0: 42, 3: 21 },
     bonuses: [{ text: "Guts Training +2", cls: "badge-guts" }, { text: "Speciality +5", cls: "badge-spec" }] },
 
-  { id: 12, name: "Grow Up and Shine!", phase: 2, priority: "high",
+  { id: 12, name: "Grow Up and Shine!", phase: 2,
     cover: "images/gc_012_shine.webp",
     cost: { 0: 21, 2: 21, 5: 21 },
     bonuses: [{ text: "SP +3", cls: "badge-sp" }, { text: "Chain +1", cls: "badge-chain" }] },
-  { id: 13, name: "Seven Colors Scenery", phase: 2, priority: "great",
+  { id: 13, name: "Seven Colors Scenery", phase: 2,
     cover: "images/gc_013_seven.webp",
     cost: { 2: 21, 5: 42 },
     bonuses: [{ text: "Power Training +2", cls: "badge-power" }, { text: "Speciality +5", cls: "badge-spec" }] },
-  { id: 14, name: "Sunbeam Cheer", phase: 2, priority: "great",
+  { id: 14, name: "Sunbeam Cheer", phase: 2,
     cover: "images/gc_014_sunbeam.webp",
     cost: { 1: 42, 5: 21 },
     bonuses: [{ text: "Wit Training +2", cls: "badge-wit" }, { text: "Chain +1", cls: "badge-chain" }] },
-  { id: 15, name: "Hoppity Sunny Days♪", phase: 2, priority: "low",
+  { id: 15, name: "Hoppity Sunny Days♪", phase: 2,
     cover: "images/gc_015_sunny.webp",
     cost: { 1: 42, 2: 21 },
     bonuses: [{ text: "Stamina Training +2", cls: "badge-stamina" }, { text: "Speciality +5", cls: "badge-spec" }] },
 
-  { id: 16, name: "Precious Treasure Box", phase: 3, priority: "high",
+  { id: 16, name: "Precious Treasure Box", phase: 3,
     cover: "images/gc_016_treasure.webp",
     cost: { 0: 42, 3: 26 },
     bonuses: [{ text: "Speed +26", cls: "badge-speed" }, { text: "Friendship +10%", cls: "badge-fri" }] },
-  { id: 17, name: "Fanfare For The Future!", phase: 3, priority: "high",
+  { id: 17, name: "Fanfare For The Future!", phase: 3,
     cover: "images/gc_017_fanfare.webp",
     cost: { 0: 26, 3: 42 },
     bonuses: [{ text: "Guts +26", cls: "badge-guts" }, { text: "Friendship +10%", cls: "badge-fri" }] },
-  { id: 18, name: "Present March♪", phase: 3, priority: "great",
+  { id: 18, name: "Present March♪", phase: 3,
     cover: "images/gc_018_present.webp",
     cost: { 2: 22, 5: 22 },
     bonuses: [{ text: "Power +22", cls: "badge-power" }, { text: "Friendship +5%", cls: "badge-fri" }] },
-  { id: 19, name: "Dream Sky", phase: 3, priority: "great",
+  { id: 19, name: "Dream Sky", phase: 3,
     cover: "images/gc_019_dreamsky.webp",
     cost: { 1: 22, 5: 22 },
     bonuses: [{ text: "Wit +22", cls: "badge-wit" }, { text: "Friendship +5%", cls: "badge-fri" }] },
-  { id: 20, name: "The World's at Our Whim", phase: 3, priority: "great",
+  { id: 20, name: "The World's at Our Whim", phase: 3,
     cover: "images/gc_020_world.webp",
     cost: { 1: 32, 2: 12 },
     bonuses: [{ text: "Stamina +22", cls: "badge-stamina" }, { text: "Friendship +5%", cls: "badge-fri" }] },
-  { id: 21, name: "Sky-Blue Spring", phase: 3, priority: "great",
+  { id: 21, name: "Sky-Blue Spring", phase: 3,
     cover: "images/gc_021_spring.webp",
     cost: { 0: 12, 3: 32 },
     bonuses: [{ text: "Guts +22", cls: "badge-guts" }, { text: "Friendship +5%", cls: "badge-fri" }] },
 
-  { id: 22, name: "Girls' Legend U", phase: 4, priority: "auto", auto: true,
+  { id: 22, name: "Girls' Legend U", phase: 4, auto: true,
     cover: "images/gc_023_girlslegend.webp",
     cost: {},
     bonuses: [{ text: "All Stats +10", cls: "badge-auto" }, { text: "Friendship +10%", cls: "badge-fri" }] },
 ];
 
 const PRIORITY_ORDER = { high: 0, great: 1, good: 2, low: 3, auto: -1 };
+
+function getFriendshipPercent(song) {
+  const bonus = song.bonuses.find(b => b.cls === 'badge-fri');
+  return bonus ? parseInt(bonus.text.match(/\d+/)[0]) : 0;
+}
+
+const DEFAULT_PRIORITY_LIST = [16, 17, 9, 12, 2, 3, 4, 18, 19, 20, 21, 1, 10, 13, 14, 5, 6, 7, 8, 11, 15];
+const PRIORITY_LIST = [...DEFAULT_PRIORITY_LIST];
+
+const savedPriority = localStorage.getItem('gc-priority-list');
+if (savedPriority) {
+  try {
+    const parsed = JSON.parse(savedPriority);
+    if (Array.isArray(parsed) && parsed.length === PRIORITY_LIST.length) {
+      PRIORITY_LIST.length = 0;
+      PRIORITY_LIST.push(...parsed);
+    }
+  } catch(e) {}
+}
+
+function getSongGroup(song) {
+  const idx = PRIORITY_LIST.indexOf(song.id);
+  return idx === -1 ? PRIORITY_LIST.length : idx;
+}
+
+function sortSongs(songs) {
+  return songs.sort((a, b) => {
+    const g = getSongGroup(a) - getSongGroup(b);
+    if (g !== 0) return g;
+    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
+  });
+}
 
 let state = {
   phase: 0,
@@ -496,27 +704,7 @@ function getTargetSongs() {
   
   const available = SONGS.filter(s => s.phase <= state.phase && !isOwned(s.id) && !s.auto);
   
-  const friendshipSongs = available.filter(s => hasFriendshipBonus(s));
-  const nonFriendshipSongs = available.filter(s => !hasFriendshipBonus(s));
-  
-  friendshipSongs.sort((a, b) => {
-    const aBonus = a.bonuses.find(b => b.cls === 'badge-fri');
-    const bBonus = b.bonuses.find(b => b.cls === 'badge-fri');
-    const aPercent = parseInt(aBonus.text.match(/\d+/)[0]);
-    const bPercent = parseInt(bBonus.text.match(/\d+/)[0]);
-    if (aPercent !== bPercent) return bPercent - aPercent;
-    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-    if (po !== 0) return po;
-    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
-  });
-  
-  nonFriendshipSongs.sort((a, b) => {
-    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-    if (po !== 0) return po;
-    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
-  });
-  
-  const sorted = [...friendshipSongs, ...nonFriendshipSongs];
+  const sorted = sortSongs([...available]);
   
   const target = [];
   const targetIds = new Set();
@@ -526,7 +714,7 @@ function getTargetSongs() {
     targetIds.add(sorted[i].id);
   }
   
-  friendshipSongs.forEach(s => {
+  sorted.filter(s => hasFriendshipBonus(s)).forEach(s => {
     if (!targetIds.has(s.id)) {
       target.push(s);
       targetIds.add(s.id);
@@ -568,27 +756,7 @@ function renderTargetSavings(targetSongs) {
     const nextPhase = state.phase + 1;
     const available = SONGS.filter(s => s.phase <= nextPhase && !isOwned(s.id) && !s.auto);
     
-    const friendshipSongs = available.filter(s => hasFriendshipBonus(s));
-    const nonFriendshipSongs = available.filter(s => !hasFriendshipBonus(s));
-    
-    friendshipSongs.sort((a, b) => {
-      const aBonus = a.bonuses.find(b => b.cls === 'badge-fri');
-      const bBonus = b.bonuses.find(b => b.cls === 'badge-fri');
-      const aPercent = parseInt(aBonus.text.match(/\d+/)[0]);
-      const bPercent = parseInt(bBonus.text.match(/\d+/)[0]);
-      if (aPercent !== bPercent) return bPercent - aPercent;
-      const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-      if (po !== 0) return po;
-      return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
-    });
-    
-    nonFriendshipSongs.sort((a, b) => {
-      const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-      if (po !== 0) return po;
-      return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
-    });
-    
-    const sorted = [...friendshipSongs, ...nonFriendshipSongs];
+    const sorted = sortSongs([...available]);
     songsToShow = sorted.slice(0, 3);
     label = 'TARGET (NEXT PHASE)';
   }
@@ -640,27 +808,7 @@ function renderSongList() {
   const ownedCurrent = available.filter(s => isOwned(s.id) && state.owned[s.id] === state.phase);
   const unowned = available.filter(s => !isOwned(s.id) && s.id !== 22);
 
-  const friendshipSongs = unowned.filter(s => hasFriendshipBonus(s));
-  const nonFriendshipSongs = unowned.filter(s => !hasFriendshipBonus(s));
-  
-  friendshipSongs.sort((a, b) => {
-    const aBonus = a.bonuses.find(b => b.cls === 'badge-fri');
-    const bBonus = b.bonuses.find(b => b.cls === 'badge-fri');
-    const aPercent = parseInt(aBonus.text.match(/\d+/)[0]);
-    const bPercent = parseInt(bBonus.text.match(/\d+/)[0]);
-    if (aPercent !== bPercent) return bPercent - aPercent;
-    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-    if (po !== 0) return po;
-    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
-  });
-  
-  nonFriendshipSongs.sort((a, b) => {
-    const po = PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority];
-    if (po !== 0) return po;
-    return Object.values(a.cost).reduce((x, y) => x + y, 0) - Object.values(b.cost).reduce((x, y) => x + y, 0);
-  });
-  
-  const sortedUnowned = [...friendshipSongs, ...nonFriendshipSongs];
+  const sortedUnowned = sortSongs([...unowned]);
 
   if (!sortedUnowned.length && !ownedCurrent.length && !boughtInPast.length) {
     container.innerHTML = '<div class="empty-msg">No songs available for this phase.</div>';
@@ -747,6 +895,81 @@ document.getElementById('info-close').addEventListener('click', () => {
 document.getElementById('info-overlay').addEventListener('click', () => {
   document.getElementById('info-popup').classList.remove('active');
   document.getElementById('info-overlay').classList.remove('active');
+});
+
+function renderPriorityList() {
+  const container = document.getElementById('priority-list');
+  
+  let html = '';
+  PRIORITY_LIST.forEach((id) => {
+    const song = SONGS.find(s => s.id === id);
+    if (!song || song.auto) return;
+    
+    html += `<div class="priority-item" data-id="${song.id}">`;
+    html += `<img class="cover" src="${song.cover}">`;
+    html += `<div class="priority-song-info">`;
+    html += `<div class="priority-song-name">${song.name}</div>`;
+    html += `<div class="priority-song-bonus">`;
+    html += `<span class="badge badge-phase">${PHASE_NAMES[song.phase]}</span>`;
+    song.bonuses.forEach(b => {
+      html += `<span class="badge ${b.cls}">${b.text}</span>`;
+    });
+    html += `</div>`;
+    html += `</div>`;
+    html += `<div class="priority-song-cost">`;
+    for (const tok of [0, 1, 2, 3, 5]) {
+      if (song.cost[tok]) {
+        html += `<img src="${TOKEN_IMG[tok]}">${song.cost[tok]} `;
+      }
+    }
+    html += `</div>`;
+    html += `</div>`;
+  });
+  
+  container.innerHTML = html;
+  
+  if (!container.sortable) {
+    container.sortable = Sortable.create(container, {
+      animation: 150,
+      onEnd: function() {
+        const items = container.querySelectorAll('.priority-item');
+        const newOrder = [];
+        items.forEach(item => {
+          newOrder.push(parseInt(item.dataset.id));
+        });
+        PRIORITY_LIST.length = 0;
+        PRIORITY_LIST.push(...newOrder);
+        localStorage.setItem('gc-priority-list', JSON.stringify(PRIORITY_LIST));
+        renderAll();
+      }
+    });
+  }
+}
+
+document.getElementById('settings-btn').addEventListener('click', () => {
+  renderPriorityList();
+  document.getElementById('settings-popup').classList.add('active');
+  document.getElementById('settings-overlay').classList.add('active');
+});
+
+document.getElementById('settings-close').addEventListener('click', () => {
+  document.getElementById('settings-popup').classList.remove('active');
+  document.getElementById('settings-overlay').classList.remove('active');
+});
+
+document.getElementById('settings-overlay').addEventListener('click', () => {
+  document.getElementById('settings-popup').classList.remove('active');
+  document.getElementById('settings-overlay').classList.remove('active');
+});
+
+document.getElementById('revert-btn').addEventListener('click', () => {
+  if (confirm('Revert to default priority order?')) {
+    PRIORITY_LIST.length = 0;
+    PRIORITY_LIST.push(...DEFAULT_PRIORITY_LIST);
+    localStorage.removeItem('gc-priority-list');
+    renderPriorityList();
+    renderAll();
+  }
 });
 
 loadState();
