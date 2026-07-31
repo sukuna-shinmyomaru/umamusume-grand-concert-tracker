@@ -633,7 +633,7 @@ function renderSongList() {
   const targetSongs = getTargetSongs();
   const targetIds = new Set(targetSongs.map(s => s.id));
   
-  const available = SONGS.filter(s => s.phase <= state.phase);
+  const available = SONGS.filter(s => s.phase <= state.phase || (s.id === 22 && isOwned(22)));
   
   const boughtInPast = available.filter(s => isOwned(s.id) && state.owned[s.id] < state.phase);
   const ownedCurrent = available.filter(s => isOwned(s.id) && state.owned[s.id] === state.phase);
