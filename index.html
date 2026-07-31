@@ -159,6 +159,7 @@
     border-bottom: 1px solid #1a1a2e;
     cursor: pointer;
     transition: background .1s;
+    position: relative;
   }
   .song:active { background: #1a2a4a; }
   .song:last-child { border-bottom: none; }
@@ -284,7 +285,7 @@
   <div class="title-row">
     <span class="title-main">GC Song Tracker</span>
     <button class="info-btn" id="info-btn">?</button>
-    <span class="title-sub">v1.0 by Sukuna#701119311607</span>
+    <span class="title-sub">v1.2 by Sukuna#701119311607</span>
   </div>
   <div class="header-row">
     <div class="phase-selector">
@@ -633,7 +634,7 @@ function renderSongList() {
   const targetSongs = getTargetSongs();
   const targetIds = new Set(targetSongs.map(s => s.id));
   
-  const available = SONGS.filter(s => s.phase <= state.phase || (s.id === 22 && isOwned(22)));
+  const available = SONGS.filter(s => s.phase <= state.phase);
   
   const boughtInPast = available.filter(s => isOwned(s.id) && state.owned[s.id] < state.phase);
   const ownedCurrent = available.filter(s => isOwned(s.id) && state.owned[s.id] === state.phase);
