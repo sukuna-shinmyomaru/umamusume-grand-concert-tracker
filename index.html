@@ -519,7 +519,7 @@
         <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
       </svg>
     </button>
-    <span class="title-sub">v1.5 by Sukuna#701119311607</span>
+    <span class="title-sub">v1.6 by Sukuna#701119311607</span>
   </div>
   <div class="header-row">
     <div class="phase-selector">
@@ -599,6 +599,8 @@ const TOKEN_IMG = {
 
 const PHASE_NAMES = ['Junior', 'Early Classic', 'Late Classic', 'Early Senior', 'Late Senior'];
 
+// Technique requirements per phase. Index = number of non-auto songs bought in phase.
+// After buying a song via carryover, techniques start at 1 (carryover replaces first technique slot).
 const TECHNIQUE_REQUIREMENTS = {
   0: [1, 2, 3, 4, 4, 2, 3],
   1: [2, 2, 2, 4, 5, 2, 2],
@@ -742,11 +744,17 @@ function sortSongs(songs) {
 
 let state = {
   phase: 0,
-  owned: {},
-  techniquesByPhase: {},
-  carryoverByPhase: {},
-  carryoverUsed: {}
+  owned: {},                    // { songId: phaseBoughtIn }
+  techniquesByPhase: {},        // { phase: techniqueCount }
+  carryoverByPhase: {},         // { phase: true } — carryover available (song from previous phase's shop)
+  carryoverUsed: {}             // { phase: true } — carryover has been consumed in this phase
 };
+
+// Game mechanics:
+// - Each phase has a shop with 3 song slots. Auto songs (Make Debut!, Girls' Legend U) are free and don't count toward technique requirements.
+// - Carryover: Songs from previous phase's shop remain available. If you meet technique requirements when advancing phases, you can buy a carryover song in the next phase.
+// - The carryover song replaces the first technique slot, so after buying it, techniques = 1 (saves you from buying a technique before the next song).
+// - Technique requirements reset after each song purchase. After carryover song: 1/N, after normal buy: 0/N.
 
 function loadState() {
   try {
@@ -765,6 +773,17 @@ function loadState() {
         if (state.carryover !== undefined) {
           state.carryoverByPhase[state.phase] = state.carryover;
           delete state.carryover;
+        }
+      }
+      for (const p of Object.keys(state.carryoverUsed || {})) {
+        if (state.carryoverUsed[p]) {
+          const nonAutoCount = Object.entries(state.owned).filter(([sid, ph]) => {
+            const s = SONGS.find(x => x.id === parseInt(sid));
+            return ph === parseInt(p) && s && !s.auto;
+          }).length;
+          if (nonAutoCount === 1 && (state.techniquesByPhase[p] || 0) === 0) {
+            state.techniquesByPhase[p] = 1;
+          }
         }
       }
       saveState();
@@ -829,15 +848,7 @@ function getCurrentTechniqueRequirement() {
   const bought = getNonAutoBoughtInPhase();
   const reqs = TECHNIQUE_REQUIREMENTS[state.phase];
   
-  let index;
-  if (state.carryoverByPhase[state.phase] && bought === 0) {
-    return 0;
-  } else if (state.carryoverUsed[state.phase]) {
-    index = bought - 1;
-  } else {
-    index = bought;
-  }
-  
+  const index = bought;
   if (index >= reqs.length) return reqs[reqs.length - 1];
   return reqs[index];
 }
@@ -865,9 +876,9 @@ function renderTechniqueCounter() {
   const plusBtn = document.getElementById('technique-plus-btn');
   
   const bought = getNonAutoBoughtInPhase();
-  const isCarryingOver = state.carryoverByPhase[state.phase] && bought === 0;
+  const isCarryingOver = state.carryoverByPhase[state.phase] && bought === 0 && current < req;
   
-  plusBtn.disabled = current >= req || isCarryingOver;
+  plusBtn.disabled = current >= req;
   const carryover = document.getElementById('technique-carryover');
   if (isCarryingOver) {
     carryover.textContent = 'CARRYING OVER';
@@ -885,14 +896,7 @@ function renderTechniqueCounter() {
   const nextEl = document.getElementById('technique-next');
   const nextValueEl = document.getElementById('technique-next-value');
   const reqs = TECHNIQUE_REQUIREMENTS[state.phase];
-  let nextIndex;
-  if (state.carryoverByPhase[state.phase] && bought === 0) {
-    nextIndex = 0;
-  } else if (state.carryoverUsed[state.phase]) {
-    nextIndex = bought;
-  } else {
-    nextIndex = bought + 1;
-  }
+  let nextIndex = bought + 1;
   if (nextIndex >= reqs.length) nextIndex = reqs.length - 1;
   const nextReq = reqs[nextIndex] || reqs[reqs.length - 1];
   nextValueEl.textContent = nextReq;
@@ -1070,10 +1074,11 @@ function renderSongList() {
         }).length;
         if (nonAutoLeft === 0) {
           delete state.carryoverUsed[state.phase];
+          state.techniquesByPhase[state.phase] = 0;
         }
       } else {
         state.owned[id] = state.phase;
-        state.techniquesByPhase[state.phase] = 0;
+        state.techniquesByPhase[state.phase] = (state.carryoverByPhase[state.phase] && !state.carryoverUsed[state.phase]) ? 1 : 0;
         if (state.carryoverByPhase[state.phase]) {
           state.carryoverUsed[state.phase] = true;
         }
