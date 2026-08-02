@@ -519,7 +519,7 @@
         <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
       </svg>
     </button>
-    <span class="title-sub">v1.6 by Sukuna#701119311607</span>
+    <span class="title-sub">v1.7 by Sukuna#701119311607</span>
   </div>
   <div class="header-row">
     <div class="phase-selector">
@@ -753,8 +753,9 @@ let state = {
 // Game mechanics:
 // - Each phase has a shop with 3 song slots. Auto songs (Make Debut!, Girls' Legend U) are free and don't count toward technique requirements.
 // - Carryover: Songs from previous phase's shop remain available. If you meet technique requirements when advancing phases, you can buy a carryover song in the next phase.
-// - The carryover song replaces the first technique slot, so after buying it, techniques = 1 (saves you from buying a technique before the next song).
-// - Technique requirements reset after each song purchase. After carryover song: 1/N, after normal buy: 0/N.
+// - The carryover song counts as bought (for song counters) but NOT for technique counting. It replaces a technique slot.
+// - Technique requirements: reqs[n] where n = non-auto songs bought, unless carryover was used, then reqs[max(0, n-1)].
+// - After buying a song, techniques reset to 0. After carryover song: techniques = 1 (saves one technique purchase).
 
 function loadState() {
   try {
@@ -848,7 +849,7 @@ function getCurrentTechniqueRequirement() {
   const bought = getNonAutoBoughtInPhase();
   const reqs = TECHNIQUE_REQUIREMENTS[state.phase];
   
-  const index = bought;
+  const index = state.carryoverUsed[state.phase] ? Math.max(0, bought - 1) : bought;
   if (index >= reqs.length) return reqs[reqs.length - 1];
   return reqs[index];
 }
@@ -896,9 +897,9 @@ function renderTechniqueCounter() {
   const nextEl = document.getElementById('technique-next');
   const nextValueEl = document.getElementById('technique-next-value');
   const reqs = TECHNIQUE_REQUIREMENTS[state.phase];
-  let nextIndex = bought + 1;
-  if (nextIndex >= reqs.length) nextIndex = reqs.length - 1;
-  const nextReq = reqs[nextIndex] || reqs[reqs.length - 1];
+  const nextIndex = state.carryoverUsed[state.phase] ? bought : bought + 1;
+  const clampedIndex = nextIndex >= reqs.length ? reqs.length - 1 : nextIndex;
+  const nextReq = reqs[clampedIndex] || reqs[reqs.length - 1];
   nextValueEl.textContent = nextReq;
   nextEl.className = `technique-next technique-next-${Math.min(5, Math.max(1, nextReq))}`;
 }
@@ -985,11 +986,25 @@ function renderTargetSavings(targetSongs) {
     const targetIds = new Set(targetSongs.map(s => s.id));
     const available = SONGS.filter(s => s.phase <= nextPhase && !isOwned(s.id) && !s.auto && !targetIds.has(s.id));
     const sorted = sortSongs([...available]);
-    const songsToShow = sorted.slice(0, 3);
+    
+    const nextTarget = [];
+    const nextTargetIds = new Set();
+    
+    for (let i = 0; i < 3 && i < sorted.length; i++) {
+      nextTarget.push(sorted[i]);
+      nextTargetIds.add(sorted[i].id);
+    }
+    
+    sorted.filter(s => hasFriendshipBonus(s)).forEach(s => {
+      if (!nextTargetIds.has(s.id)) {
+        nextTarget.push(s);
+        nextTargetIds.add(s.id);
+      }
+    });
     
     const totals = {};
     [0, 1, 2, 3, 5].forEach(t => totals[t] = 0);
-    songsToShow.forEach(s => {
+    nextTarget.forEach(s => {
       for (const [tok, amt] of Object.entries(s.cost)) {
         totals[tok] = (totals[tok] || 0) + amt;
       }

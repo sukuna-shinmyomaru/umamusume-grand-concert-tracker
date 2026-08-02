@@ -17,6 +17,10 @@ Open `index.html` in a browser. Tap songs to mark as bought. Use phase arrows to
 
 ## Changelog
 
+### v1.7
+- Fixed technique counter not accounting for carryover song in requirement calculation
+- Fixed TARGET (NEXT PHASE) calculation to exclude current TARGET songs and include friendship bonus songs
+
 ### v1.6
 - Fixed carryover technique counting: carryover song now correctly replaces the first technique slot
 - Technique progress after buying carryover song now shows 1/N instead of 0/N
